@@ -19,13 +19,26 @@ public class Order {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="member_id")
     private Member member;
-    @OneToMany(fetch = FetchType.LAZY)
-    @JoinColumn(name="order_items")
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private List<OrderItem> orderItems = new ArrayList<>();
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name="delivery_id")
     private Delivery delivery;
     private LocalDateTime orderDate;
     @Enumerated(EnumType.STRING)
     private OrderStatus status;
+    // 양방향 연관관계 편의 메서드
+    public void setMember(Member member){
+        this.member = member;
+        member.getOrders().add(this);
+    }
+    // 양방향 연관관계 편의 메서드, 비즈니스 로직 상 우위인 쪽에 연관관계 메서드가 있는 것이 좋음
+    public void addOrderItem(OrderItem orderItem){
+        orderItems.add(orderItem);
+        orderItem.setOrder(this);
+    }
+    public void setDelivery(Delivery delivery){
+        this.delivery = delivery;
+        delivery.setOrder(this);
+    }
 }
