@@ -2,14 +2,15 @@ package jpabook.jpashop.api;
 
 import jpabook.jpashop.domain.Member;
 import jpabook.jpashop.service.MemberService;
-import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
-import java.util.List;
+import javax.websocket.server.PathParam;
 
 @RestController
 @RequiredArgsConstructor
@@ -22,57 +23,64 @@ public class MemberApiController {
         return new CreateMemberResponse(id);
     }
 
+
     @PostMapping("/api/v2/members")
-    public CreateMemberResponse saveMemberV2(@RequestBody @Valid CreateMemberRequest request){
+    public CreateMemberResponse saveMemberV2(@RequestBody @Valid CreateMemberRequest memberRequest) {
         Member member = new Member();
-        member.setName(request.getName());
+        member.setName(memberRequest.getName());
 
         Long id = memberService.join(member);
         return new CreateMemberResponse(id);
     }
 
-    @PutMapping("/api/v1/members/{memberId}")
-    public UpdateMemberResponse updateMemberV2(
-            @PathVariable("memberId") Long id,
-            @RequestBody @Valid UpdateMemberRequest request){
-        //update
+    @PutMapping("/api/v2/members/{memberId}")
+    public UpdateMemberResponse updateMemberV2(@PathVariable("memberId")Long id,
+                                               @RequestBody @Valid UpdateMemberRequest request){
         memberService.update(id, request.getName());
-        //query
         Member findMember = memberService.findMember(id);
         return new UpdateMemberResponse(findMember.getId(), findMember.getName());
     }
 
-    @GetMapping("/api/v1/members")
-    public List<Member> memberV1(){
-        return memberService.findMembers();
+    /***
+     * Update Member DTO
+     */
+    @Data @Getter
+    @Setter
+    public static class UpdateMemberResponse{
+        private Long id;
+        private String name;
+
+        public UpdateMemberResponse(Long id, String name) {
+            this.id = id;
+            this.name = name;
+        }
     }
 
-
-
-    @Data
-    static class UpdateMemberRequest {
+    @Data @Getter
+    public static class UpdateMemberRequest {
         @NotEmpty
         private String name;
     }
 
+    /***
+     * Create Member DTO
+     */
     @Data
-    @AllArgsConstructor
-    static class UpdateMemberResponse {
+    public static class CreateMemberResponse{
         private Long id;
-        private String name;
-    }
 
-    @Data
-    static class CreateMemberRequest {
-        @NotEmpty
-        private String name;
-    }
-
-    @Data
-    static class CreateMemberResponse {
-        private Long id;
         public CreateMemberResponse(Long id) {
             this.id = id;
+        }
+    }
+
+    @Data
+    public static class CreateMemberRequest {
+        @NotEmpty
+        private String name;
+
+        public String getName() {
+            return name;
         }
     }
 }
