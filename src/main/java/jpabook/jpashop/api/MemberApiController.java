@@ -2,20 +2,50 @@ package jpabook.jpashop.api;
 
 import jpabook.jpashop.domain.Member;
 import jpabook.jpashop.service.MemberService;
-import lombok.Data;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import javax.websocket.server.PathParam;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
 public class MemberApiController {
     private final MemberService memberService;
+
+    @GetMapping("/api/v1/members")
+    public List<Member> membersV1() {
+        return memberService.findMembers();
+    }
+
+    /***
+     * 엔티티를 api 스펙으로 감싸는 작업이 추가됨
+     * @return
+     */
+    @GetMapping("/api/v2/members")
+    public Result membersV2() {
+        List<Member> findMembers = memberService.findMembers();
+        List<MemberDto> collect = findMembers.stream()
+                .map(m -> new MemberDto(m.getName()))
+                .collect(Collectors.toList());
+        return new Result(collect.size(), collect);
+    }
+
+    @Data
+    @AllArgsConstructor
+    static class Result<T> {
+        private int count;
+        private T data;
+    }
+
+    @Data
+    @AllArgsConstructor
+    static class MemberDto {
+        private String name;
+    }
 
     @PostMapping("/api/v1/members")
     public CreateMemberResponse saveMemberV1(@RequestBody @Valid Member member){
